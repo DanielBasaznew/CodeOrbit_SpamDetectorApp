@@ -1,25 +1,20 @@
-# CodeOrbit SMS Spam Detector (Task 6 — Part 1)
+# CodeOrbit SMS Spam Detector (Task 6 — Complete)
 
-An end-to-end machine learning pipeline that classifies SMS text messages as **spam** or **not spam (ham)** with calibrated probability confidence scores.
+An end-to-end machine learning web application that classifies SMS text messages as **spam** or **not spam (ham)** with calibrated confidence scores.
 
-## Project Purpose
-- Separate model training and evaluation (`train.py`) from fast production inference (`predict.py`) via `joblib` serialization.
-- Address class imbalance (~87.4% ham vs. ~12.6% spam) by prioritizing spam precision and recall over raw accuracy alone.
+## App Overview
+The Streamlit web interface (`app.py`) delivers all three core application layers:
+1. **Data Input:** A text box (`st.text_area`) paired with a preset example selector (`st.selectbox`) for instant one-click testing.
+2. **Model Prediction:** Validates non-empty input and evaluates the message against the cached TF-IDF + Multinomial Naive Bayes pipeline (`spam_model.joblib`).
+3. **Output Display:** Displays a clear **🚨 Spam** or **✅ Not spam** status banner, confidence percentage (`st.metric`), and probability bar (`st.progress`).
 
----
-
-## Dataset
-- **Source:** [UCI SMS Spam Collection](https://archive.ics.uci.edu/dataset/228/sms+spam+collection)
-- **Setup:** Download and extract `SMSSpamCollection` into `data/SMSSpamCollection`.
-- **Size & Distribution:**
-  - Raw rows: `5,572` | Deduplicated rows: `5,169`
-  - **Ham (0):** `4,516` messages (`87.37%`)
-  - **Spam (1):** `653` messages (`12.63%`)
+![SMS Spam Detector App Screenshot](app_screenshot.png)
 
 ---
 
-## How to Run
+## Install & Run Steps
 
-1. Activate the virtual environment:
+1. Clone the repository and activate a virtual environment:
    ```bash
+   python -m venv .venv
    source .venv/Scripts/activate  # Windows Git Bash

@@ -1,40 +1,38 @@
-# Engineering Journal — Day 8: SMS Spam Detector Model (Task 6, Part 1)
+# Engineering Journal — Day 9: Streamlit Web App & End-to-End Wrap-Up (Task 6, Part 2)
 
 ## 1. What I Studied
-- **Imbalanced Binary Classification:** Why ~87.37% accuracy on the SMS Spam Collection can be achieved by a useless all-ham classifier, making spam precision and recall the critical evaluation metrics.
-- **Scikit-Learn Pipelines:** Chaining `TfidfVectorizer` and `MultinomialNB` into one estimator to prevent train-test data leakage.
-- **Probability Estimation & Serialization:** Using `predict_proba()` for confidence reporting and `joblib.dump()` / `joblib.load()` to persist models across sessions.
+- **Three App Pillars:** Structuring an end-to-end ML app with visible Data Input (`st.text_area`), Model Prediction (`predict_proba`), and Output Display (`st.error`/`st.success` + `st.metric`).
+- **Streamlit Execution Model:** How Streamlit re-executes the entire script from top to bottom on every widget interaction.
+- **Caching & State Management:** Using `@st.cache_resource` to load `spam_model.joblib` once in memory and `st.session_state` to populate preset dropdown examples cleanly across reruns.
 
 ## 2. Core Notes
-1. **Spam vs. Ham:** Binary classification distinguishing unwanted promotional/scam SMS (`1`) from legitimate messages (`0`).
-2. **Precision Priority:** In spam filtering, precision (`1.0000` achieved) matters more than recall (`0.7405`) because falsely blocking an urgent real message is worse than letting an occasional spam text through.
-3. **Deduplication:** Removing 403 duplicate rows (`5,572 -> 5,169`) prevented identical messages from leaking across train and test splits.
-4. **Pipeline Consistency:** Wrapping vectorization and classification inside `Pipeline` guarantees identical preprocessing during training and inference.
-5. **Model Persistence:** Serializing `spam_model.joblib` decouples offline training from real-time inference.
+1. **App Architecture:** Data input captures text, prediction runs `model.predict_proba()`, and output renders the verdict banner, confidence score, and probability progress bar.
+2. **Script Reruns:** Every button click or dropdown change triggers a full top-to-bottom script rerun.
+3. **Resource Caching:** `@st.cache_resource` avoids reloading `spam_model.joblib` from disk on every click.
+4. **Defensive Guards:** Checking `os.path.exists("spam_model.joblib")` with `st.stop()` and guarding blank inputs with `st.warning()` prevents crashes.
+5. **CLI Fallback:** Building `cli.py` around `predict_message()` ensures terminal usability alongside the browser interface.
 
 ## 3. What I Built
-- Initialized `CodeOrbit_SpamDetectorApp` with an isolated `.venv` and `data/SMSSpamCollection`.
-- Implemented `train.py`: deduplicates SMS messages, runs a stratified 80/20 split (`random_state=42`), trains a `TfidfVectorizer` + `MultinomialNB` pipeline, prints classification metrics, and saves `spam_model.joblib`.
-- Implemented `predict.py`: lazy-loads `spam_model.joblib`, validates non-empty string input, and returns `(label, confidence)`.
-- Built `test_spam.py` to audit keyword traps, borderline phishing, empty inputs, and non-English/emoji text.
+- Built `app.py` with preset example dropdowns (`st.session_state`), cached `.joblib` loading (`@st.cache_resource`), confidence metrics, progress bar, and an expandable `"How it works"` section.
+- Built `cli.py` for interactive terminal inference.
+- Captured `app_screenshot.png` and finalized `README.md` with plain-English architecture notes, metrics, and limitations.
 
 ## 4. Tests Run & Empirical Findings
-- **Test Accuracy:** `96.71%` (vs. `87.37%` majority-class baseline), with `1.0000` spam precision (903/903 ham preserved) and `0.7405` spam recall (97/131 spam caught).
-- **Keyword Trap (`"I'm free tonight"`):** Correctly predicted `not spam` (`94.77%` confidence).
-- **Modern Phishing Blindspot (`"Your parcel is waiting, click here"`):** Predicted `not spam` (`82.53%`) because 2012 UCI training data lacks modern parcel-delivery scam vocabulary.
-- **Out-of-Vocabulary Input (`"🎉🔥🚀 ሰላም እንዴት ነህ?"`):** Produced an all-zero TF-IDF vector, defaulting to the `87.38%` ham prior without crashing.
+- **Preset & Edge-Case UI Tests:** Verified high-confidence spam (`85.34%`), high-confidence ham (`99.66%`), empty/whitespace warnings, emoji/Amharic text (`🎉🔥🚀 ሰላም እንዴት ነህ?` -> `Not spam` without crashing), repeated clicks, and browser refreshes.
+- **Missing-Model Test:** Temporarily renamed `spam_model.joblib` to confirm the clean error banner without a Python traceback, then restored the file.
+- **Clean-Environment Verification:** Copied project files to a fresh folder (`CodeOrbit_SpamDetector_CleanTest`), created a new `.venv`, ran `pip install -r requirements.txt` and `python train.py`, and reproduced the exact `96.71%` accuracy and `1.0000` spam precision.
 
 ## 5. End-to-End Explanation (5 Lines)
-1. Raw SMS messages are deduplicated, mapped (`ham=0`, `spam=1`), and split 80/20 with stratification.
-2. `TfidfVectorizer` converts text into weighted term-frequency sparse vectors while filtering English stop words.
-3. `MultinomialNB` computes posterior class probabilities via `predict_proba()`.
-4. `joblib.dump()` serializes the fitted pipeline to `spam_model.joblib`.
-5. `predict_message()` loads the saved artifact, validates input, and outputs the predicted class and confidence score.
+1. The user enters an SMS message or selects a preset example in the Streamlit interface.
+2. Clicking **Check message** validates non-empty text and passes the string to the cached `Pipeline`.
+3. `TfidfVectorizer` transforms the text into numerical term-importance weights.
+4. `MultinomialNB` computes posterior probabilities for `ham` and `spam`.
+5. The UI displays **Spam** (`>= 50%`) or **Not spam** alongside the confidence percentage and probability bar.
 
 ## 6. What I Don't Understand Yet / Next Steps
-- How tuning the probability decision threshold (e.g., lowering from `0.50` to `0.35`) trades precision for higher spam recall.
-- Adding n-grams (`ngram_range=(1, 2)`) or `LogisticRegression` to catch multi-word phishing cues like `"click here"`.
+- Deploying the Streamlit app publicly via Streamlit Community Cloud or Docker.
+- Comparing Multinomial Naive Bayes against Logistic Regression or fine-tuned transformer models on modern SMS phishing datasets.
 
-## 7. Tomorrow's Plan (Day 9: Task 6, Part 2)
-- Build an interactive Streamlit web UI (`app.py`) powered by `predict_message()`.
-- Complete the `App` and `How It Works` sections in `README.md`.
+## 7. Tomorrow's Plan (Day 10: Wrap-Up & Submission)
+- Locate the submission form link and verify all 6 GitHub repository URLs.
+- Record and publish the LinkedIn demo video showcasing the SMS Spam Detector app.
