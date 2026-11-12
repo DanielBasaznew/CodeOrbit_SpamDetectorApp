@@ -8,7 +8,12 @@ def main() -> None:
     print("=" * 60)
 
     while True:
-        user_input = input("\nEnter SMS > ")
+        try:
+            user_input = input("\nEnter SMS > ")
+        except (EOFError, KeyboardInterrupt):
+            print("\nExiting SMS Spam Detector CLI.")
+            break
+
         if user_input.strip().lower() in {"quit", "exit"}:
             print("Exiting SMS Spam Detector CLI.")
             break
